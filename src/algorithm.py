@@ -2,13 +2,12 @@ import pandas
 from src.tree import Tree, NumericalNode, LeafNode, CategoricalNode
 from src.math import gain, threshold, numerical_gain
 
-class TreeAlgorithm:
-
+class Algorithm:
     def train(self, data):
         pass
 
 
-class ID3(TreeAlgorithm):
+class ID3(Algorithm):
     def __init__(self, data, numeric_attributes=[], specific_class=None):
         self.numeric_attributes = numeric_attributes
         self.data = data

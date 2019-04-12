@@ -1,4 +1,5 @@
 import warnings
+from src.knn import Knn
 from src.classifier import Classifier, ID3
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score, f1_score

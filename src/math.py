@@ -70,3 +70,11 @@ def threshold(data, attribute, specific_class=None):
             max_gain = current_gain
             cut = i
     return sorted_data[attribute].iloc[cut]
+
+def scale(data, attributes = []):
+    for attribute in attributes:
+        min_attribute = data.loc[attribute].min()
+        max_attribute = data.loc[attribute].max()
+        max_min_diff = max_attribute - min_attribute
+        data[attribute] = (data[attribute] - min_attribute) / max_min_diff
+
