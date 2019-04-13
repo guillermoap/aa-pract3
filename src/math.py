@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+import pandas
 
 def entropy(classes, specific_class=None):
     '''
@@ -71,10 +72,15 @@ def threshold(data, attribute, specific_class=None):
             cut = i
     return sorted_data[attribute].iloc[cut]
 
+
 def scale(data, attributes = []):
+    '''
+        Scale usin min and max
+        Useful for data normalization
+    '''    
     for attribute in attributes:
-        min_attribute = data.loc[attribute].min()
-        max_attribute = data.loc[attribute].max()
+        min_attribute = data[attribute].min()
+        max_attribute = data[attribute].max()
         max_min_diff = max_attribute - min_attribute
         data[attribute] = (data[attribute] - min_attribute) / max_min_diff
-
+    
