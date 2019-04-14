@@ -5,6 +5,8 @@ from src.math import gain, threshold, numerical_gain
 class Algorithm:
     def train(self, data):
         pass
+    def specific_class_probability(self):
+        pass
 
 
 class ID3(Algorithm):

@@ -1,31 +1,59 @@
 import warnings
+import pandas
+import sys
+
+from src.knn import Knn
 from src.classifier import Classifier, ID3
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score, f1_score
-import pandas
-import sys, getopt
+from optparse import OptionParser
 from src.optimize import optimize
 
 warnings.filterwarnings('ignore')
 IRIS_NUMERIC_ATTRIBUTES = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
 COV_TYPE_NUMERIC_ATTRIBUTES = ['Elevation','Aspect','Slope','Horizontal_Distance_To_Hydrology','Vertical_Distance_To_Hydrology','Horizontal_Distance_To_Roadways','Hillshade_9am','Hillshade_Noon','Hillshade_3pm','Horizontal_Distance_To_Fire_Points', 'Hillshade_Mean']
 
-def parte_a(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES):
-    classifier = Classifier(ID3(train, numeric_attributes))
+ID3_ALGORITHM = 'id3'
+KNN_1_ALGORITHM = '1nn'
+KNN_3_ALGORITHM = '3nn'
+KNN_7_ALGORITHM = '7nn'
+NAIVE_BAYES_ALGORITHM = 'nbayes'
+
+def create_classifier(train, algorithm, numeric_attributes=[], specific_class=None):
+    if algorithm == ID3_ALGORITHM:
+        print('algoritmo id3')
+        return Classifier(ID3(train, numeric_attributes, specific_class))
+    elif algorithm == KNN_1_ALGORITHM:
+        print('algoritmo knn. k = 1')
+        return Classifier(Knn(1, train, specific_class))
+    elif algorithm == KNN_3_ALGORITHM:
+        print('algoritmo knn. k = 3')
+        return Classifier(Knn(3, train, specific_class))
+    elif algorithm == KNN_7_ALGORITHM:
+        print('algoritmo knn. k = 7')
+        return Classifier(Knn(7, train, specific_class))
+    elif algorithm == NAIVE_BAYES_ALGORITHM:
+        print('algoritmo naive-bayes')
+        return None
+    else:
+        return None
+
+def parte_a(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm = ID3_ALGORITHM):
+    classifier = create_classifier(train, algorithm, numeric_attributes)
     classifier.train()
     actual = []
     predicted = []
     for _, elem in test.iterrows():
         actual.append(elem.clazz)
-        predicted.append(classifier.classify(elem.drop(columns=['clazz'], axis=1)))
+        predicted.append(classifier.classify(elem.iloc[0:-1]))
     output_results(title='PARTE A', actual=actual, predicted=predicted)
 
-def parte_b(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES):
+def parte_b(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm = ID3_ALGORITHM):
     classifiers = []
     classes = train.clazz.unique()
     idx = 1
     for clazz in classes:
-        classifier = Classifier(ID3(train, numeric_attributes, specific_class=clazz))
+        classifier = create_classifier(train, algorithm, numeric_attributes, clazz)
         classifier.train()
         classifiers.append(classifier)
         idx += 1
@@ -34,12 +62,12 @@ def parte_b(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES):
     predicted = []
     for _, elem in test.iterrows():
         actual.append(elem.clazz)
-        predicted.append(vote_classify(classifiers, elem.drop(columns=['clazz'], axis=1)))
+        predicted.append(vote_classify(classifiers, elem[0:-1]))
     output_results(title='PARTE B', actual=actual, predicted=predicted)
 
-def parte_c(train, test, numeric_attributes=COV_TYPE_NUMERIC_ATTRIBUTES):
-    parte_a(train, test, numeric_attributes)
-    parte_b(train, test, numeric_attributes)
+def parte_c(train, test, numeric_attributes=COV_TYPE_NUMERIC_ATTRIBUTES, algorithm = ID3_ALGORITHM):
+    parte_a(train, test, numeric_attributes, algorithm)
+    parte_b(train, test, numeric_attributes, algorithm)
 
 def output_results(title, actual, predicted):
     print(f'######### {title} #########')
@@ -67,29 +95,43 @@ def vote_classify(clasiffiers, element):
     return result
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        training_size_covtype = float(sys.argv[1]) 
+    parser = OptionParser()
+    parser.add_option('-p', '--covtype-percent', dest='covtype_percent',
+     help='porcentaje, en el intervalo [0,1], a utilizar del cover type dataset')
+    parser.add_option('-a', '--algorithm', dest='algorithm',
+     help="Algoritmo a utilizar. Puede ser 'id3', '1nn', '3nn', '7nn' o 'nbayes' sin comillas")
+    options, args = parser.parse_args()
+    if options.covtype_percent:
+        training_size_covtype = float(options.covtype_percent) 
         print(f'Usando {training_size_covtype * 100} por ciento del cover type dataset')    
     else:
         print('Usando 100 por ciento del cover type dataset')
         print('Esto puede demorar. Puede pasar como argumento la proporcion del dataset covtype que desea usar')
         print('Esto es, por ejemplo:')
         print('python3 run.py 0.02')
-        training_size_covtype = 0.02    
+        training_size_covtype = 0.02
+    if not options.algorithm:
+        print('No se seleccionó algoritmo. Se usara id3')
+        algorithm = ID3_ALGORITHM
+    else:
+        algorithm = options.algorithm
     data = pandas.read_csv('./iris.csv')
     train, test = train_test_split(data, test_size=0.2)
     print("### IRIS ###")
-    parte_a(train=train, test=test)
-    parte_b(train=train, test=test)
+    parte_a(train=train, test=test, algorithm=algorithm)
+    parte_b(train=train, test=test, algorithm=algorithm)
     optimize()
     print("### COVER_TYPE NUMERIC (opt.csv) ###")
     data = pandas.read_csv('./covtype.data.opt.csv')
-    pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
+    if training_size_covtype < 1:
+        pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
+    else:
+        dataset = data
     train, test = train_test_split(dataset, test_size=0.2)
-    parte_c(train, test)
+    parte_c(train, test, algorithm = algorithm)
 
-    print("### COVER_TYPE LOG (opt.log.csv) ###")
-    data = pandas.read_csv('./covtype.data.opt.log.csv')
-    pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
-    train, test = train_test_split(dataset, test_size=0.2)
-    parte_c(train, test)
+    #print("### COVER_TYPE LOG (opt.log.csv) ###")
+    #data = pandas.read_csv('./covtype.data.opt.log.csv')
+    #pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
+    #train, test = train_test_split(dataset, test_size=0.2)
+    #parte_c(train, test, algorithm = algorithm)
