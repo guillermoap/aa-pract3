@@ -3,6 +3,7 @@ import pandas
 import sys
 
 from src.knn import Knn
+from src.bayes import bayes
 from src.classifier import Classifier, ID3
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score, f1_score
@@ -34,13 +35,14 @@ def create_classifier(train, algorithm, numeric_attributes=[], specific_class=No
         return Classifier(Knn(7, train, specific_class))
     elif algorithm == NAIVE_BAYES_ALGORITHM:
         print('algoritmo naive-bayes')
-        return None
+        return Classifier(bayes(train, numeric_attributes, specific_class))
     else:
         return None
 
 def parte_a(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm = ID3_ALGORITHM):
     classifier = create_classifier(train, algorithm, numeric_attributes)
     classifier.train()
+    
     actual = []
     predicted = []
     for _, elem in test.iterrows():
@@ -119,16 +121,16 @@ if __name__ == "__main__":
     train, test = train_test_split(data, test_size=0.2)
     print("### IRIS ###")
     parte_a(train=train, test=test, algorithm=algorithm)
-    parte_b(train=train, test=test, algorithm=algorithm)
-    optimize()
-    print("### COVER_TYPE NUMERIC (opt.csv) ###")
-    data = pandas.read_csv('./covtype.data.opt.csv')
-    if training_size_covtype < 1:
-        pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
-    else:
-        dataset = data
-    train, test = train_test_split(dataset, test_size=0.2)
-    parte_c(train, test, algorithm = algorithm)
+    # parte_b(train=train, test=test, algorithm=algorithm)
+    # optimize()
+    # print("### COVER_TYPE NUMERIC (opt.csv) ###")
+    # data = pandas.read_csv('./covtype.data.opt.csv')
+    # if training_size_covtype < 1:
+        # pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
+    # else:
+        # dataset = data
+    # train, test = train_test_split(dataset, test_size=0.2)
+    # parte_c(train, test, algorithm = algorithm)
 
     #print("### COVER_TYPE LOG (opt.log.csv) ###")
     #data = pandas.read_csv('./covtype.data.opt.log.csv')

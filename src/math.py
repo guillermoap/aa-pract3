@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import stats
 import pandas
+import math
 
 def entropy(classes, specific_class=None):
     '''
@@ -83,4 +84,13 @@ def scale(data, attributes = []):
         max_attribute = data[attribute].max()
         max_min_diff = max_attribute - min_attribute
         data[attribute] = (data[attribute] - min_attribute) / max_min_diff
-    
+
+def mean(data, specific_class, attribute):
+    return (data.loc[data['clazz']==specific_class][attribute].mean())
+
+def variance(data, specific_class, attribute):
+    return (data.loc[data['clazz']==specific_class][attribute].var())
+
+def gaussian(x, mean, variance):
+    exponent = math.exp(-(math.pow(x-mean,2)/(2*variance)))
+    return (1 / (math.sqrt(2*math.pi*variance))*exponent)
