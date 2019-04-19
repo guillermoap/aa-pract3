@@ -47,6 +47,7 @@ def parte_a(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm =
     predicted = []
     for _, elem in test.iterrows():
         actual.append(elem.clazz)
+        print(elem)
         predicted.append(classifier.classify(elem.iloc[0:-1]))
     output_results(title='PARTE A', actual=actual, predicted=predicted)
 

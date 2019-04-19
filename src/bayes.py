@@ -35,9 +35,9 @@ class bayes(Algorithm):
         return separated
 
     def train(self):
-        mc = self.qByClass()
-        mad = {}
-        mac = {}
+        mc = self.qByClass() # a priori, por ahora solo cantidades, al final se normaliza
+        mad = {} # matriz atributos discretos
+        mac = {} # matriz atributos continuos (con mean y variance)
         for c in self.data.clazz.unique():
             mac[c] = {}
             for attribute in self.data.columns.unique():
