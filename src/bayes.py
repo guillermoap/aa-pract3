@@ -22,7 +22,6 @@ class bayes(Algorithm):
                 q[c] = q[c]+1
             else:
                 q[c] = 1
-        print (q)
         return q
 
     def separateByClass(self):
@@ -40,12 +39,14 @@ class bayes(Algorithm):
         mac = {} # matriz atributos continuos (con mean y variance)
         for c in self.data.clazz.unique():
             mac[c] = {}
+            mad[c] = {}
             for attribute in self.data.columns.unique():
                 if attribute == 'clazz':
                     pass
                 else:
-                    mac[c][attribute] = {}
+                    # print (attribute)
                     if attribute in self.numeric_attributes:
+                        mac[c][attribute] = {}
                         # atributo continuo
                         # calcular media
                         m = mean(self.data, c, attribute)
@@ -53,23 +54,25 @@ class bayes(Algorithm):
                         v = variance(self.data, c, attribute)
                         mac[c][attribute]['mean'] = m
                         mac[c][attribute]['variance'] = v
-                        pass
                     else:
                         # atributo discreto
-                        for value in self.attribute_values[attribute]:
-                            print ('discreto')
+                        # print ('discreto')
+                        mad[c][attribute] = {}
+                        for value in self.attribute_values[attribute].unique():
+                            mad[c][attribute][value] = len(self.data[self.data['clazz']==c][self.data[attribute]==value])/mc[c]
                             # print (value)
-                            pass
-                        pass
 
         # normalize
         for key, val in mc.items():
             mc[key] = (val/len(self.data))
+        # print('mc')
+        # print (mc)
+        # print('mac')
+        # print (mac)
+        # print('mad')
+        # print (mad)
 
-        print (mc)
-        print (mac)
-
-        return Bayes(self.data, mc, mad, mac)
+        return Bayes(self.data, self.numeric_attributes, mc, mad, mac)
 
     def specific_class_probability(self):
         pass

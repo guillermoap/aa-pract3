@@ -1,8 +1,9 @@
 from src.math import gaussian
 
 class Bayes:
-    def __init__(self, data, mc, mad, mac):
+    def __init__(self, data, numeric_attributes, mc, mad, mac):
         self.data = data
+        self.numeric_attributes = numeric_attributes
         self.mc = mc
         self.mad = mad
         self.mac = mac
@@ -10,15 +11,26 @@ class Bayes:
     def classify(self, element):
         probabilities = {}
         for c in self.data.clazz.unique():
-            probabilities[c] = 1
+            probabilities[c] = self.mc[c]
             for attribute in self.data.columns.unique():
                 if attribute == 'clazz':
                     pass
                 else:
-                    x = element[attribute]
-                    probabilities[c] *= gaussian(x, self.mac[c][attribute]['mean'], self.mac[c][attribute]['variance'])
-        
+                    if attribute in self.numeric_attributes:
+                        x = element[attribute]
+                        probabilities[c] *= gaussian(x, self.mac[c][attribute]['mean'], self.mac[c][attribute]['variance'])
+                    else: 
+                        x = element[attribute]
+                        if (x in self.mad[c][attribute]):
+                            p = self.mad[c][attribute][x]
+                            if p == 0:
+                                p = 0.000000000001
+                        else: 
+                            p = 0.000000000001
+                        probabilities[c] *= p
+
         bestProb = -1
+        # print(probabilities)
         for c, prob in probabilities.items():
             if prob > bestProb:
                 bestProb = prob
