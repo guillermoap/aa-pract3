@@ -47,7 +47,9 @@ class KnnKdTreeClassificationModel():
 
     def classify(self, element):
         distances, indexes = self.kdtree.query([element], self.k)
-        knn = self.data.iloc[indexes[0]]
+        if self.k > 1:
+            indexes = indexes[0]
+        knn = self.data.iloc[indexes]
         return knn.clazz.mode().iloc[0]
 
 class Knn(Algorithm):

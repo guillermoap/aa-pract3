@@ -69,7 +69,7 @@ def parte_b(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm =
 
 def parte_c(train, test, numeric_attributes=COV_TYPE_NUMERIC_ATTRIBUTES, algorithm = ID3_ALGORITHM):
     parte_a(train, test, numeric_attributes, algorithm)
-    # parte_b(train, test, numeric_attributes, algorithm)
+    parte_b(train, test, numeric_attributes, algorithm)
 
 def output_results(title, actual, predicted):
     print(f'######### {title} #########')
@@ -109,11 +109,9 @@ if __name__ == "__main__":
     else:
         print('Usando 100 por ciento del cover type dataset')
         print('Esto puede demorar. Puede pasar como argumento la proporcion del dataset covtype que desea usar')
-        print('Esto es, por ejemplo:')
-        print('python3 run.py 0.02')
-        training_size_covtype = 0.02
+        training_size_covtype = 1
     if not options.algorithm:
-        print('No se seleccionó algoritmo. Se usara id3')
+        print('No se selecciono algoritmo. Se usara id3')
         algorithm = ID3_ALGORITHM
     else:
         algorithm = options.algorithm
@@ -121,22 +119,24 @@ if __name__ == "__main__":
     train, test = train_test_split(data, test_size=0.2)
     print("### IRIS ###")
     parte_a(train=train, test=test, algorithm=algorithm)
-    # parte_b(train=train, test=test, algorithm=algorithm)
+    parte_b(train=train, test=test, algorithm=algorithm)
     optimize()
-    print("### COVER_TYPE NUMERIC (opt.csv) ###")
-    data = pandas.read_csv('./covtype.data.opt.csv')
-    if training_size_covtype < 1:
-        pass
-        # pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
-    else:
-        dataset = data
+    # print("### COVER_TYPE NUMERIC (opt.csv) ###")
+    # data = pandas.read_csv('./covtype.data.opt.csv')
+    # if training_size_covtype < 1:
+    #     pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
+    # else:
+    #     dataset = data
     # train, test = train_test_split(dataset, test_size=0.2)
-    train, test = train_test_split(data, test_size=0.2)
-    parte_c(train, test, algorithm = algorithm)
+    # train, test = train_test_split(data, test_size=0.2)
+    #parte_c(train, test, algorithm = algorithm)
 
     print("### COVER_TYPE LOG (opt.log.csv) ###")
     data = pandas.read_csv('./covtype.data.opt.log.csv')
-    # pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
-    # train, test = train_test_split(dataset, test_size=0.2)
-    train, test = train_test_split(data, test_size=0.2)
+    if training_size_covtype < 1:
+        pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
+    else:
+        dataset = data
+    train, test = train_test_split(dataset, test_size=0.2)
+    # train, test = train_test_split(data, test_size=0.2)
     parte_c(train, test, algorithm = algorithm)
