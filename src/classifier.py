@@ -18,3 +18,6 @@ class Classifier:
         else:
             return self.model.classify(element)
 
+    def soft_vote_classify(self, element):
+        probabilities = self.algorithm.specific_class_probability(element)
+        return probabilities

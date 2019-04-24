@@ -9,11 +9,10 @@ class bayes(Algorithm):
         self.numeric_attributes = numeric_attributes
         self.attribute_values = dict()
         self.specific_class = specific_class
+        self.trained_model = None
 
         for attribute in data.columns:
             self.attribute_values[attribute] =  data[attribute]
-        # print (self.attribute_values)
-
 
     def qByClass(self):
         q = {}
@@ -30,7 +29,6 @@ class bayes(Algorithm):
             if row[-1] not in separated:
                 separated[row[-1]] = []
             separated[row[-1]].append(row)
-        # print (separated)
         return separated
 
     def train(self):
@@ -44,7 +42,6 @@ class bayes(Algorithm):
                 if attribute == 'clazz':
                     pass
                 else:
-                    # print (attribute)
                     if attribute in self.numeric_attributes:
                         mac[c][attribute] = {}
                         # atributo continuo
@@ -56,24 +53,17 @@ class bayes(Algorithm):
                         mac[c][attribute]['variance'] = v
                     else:
                         # atributo discreto
-                        # print ('discreto')
                         mad[c][attribute] = {}
                         for value in self.attribute_values[attribute].unique():
                             mad[c][attribute][value] = len(self.data[self.data['clazz']==c][self.data[attribute]==value])/mc[c]
-                            # print (value)
 
         # normalize
         for key, val in mc.items():
             mc[key] = (val/len(self.data))
-        # print('mc')
-        # print (mc)
-        # print('mac')
-        # print (mac)
-        # print('mad')
-        # print (mad)
+        model = Bayes(self.data, self.numeric_attributes, mc, mad, mac)
+        self.trained_model = model
+        return model
 
-        return Bayes(self.data, self.numeric_attributes, mc, mad, mac)
-
-    def specific_class_probability(self):
-        pass
+    def specific_class_probability(self, element=None):
+        return self.trained_model.classify(element, True)
 

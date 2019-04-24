@@ -42,7 +42,7 @@ def create_classifier(train, algorithm, numeric_attributes=[], specific_class=No
 def parte_a(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm = ID3_ALGORITHM):
     classifier = create_classifier(train, algorithm, numeric_attributes)
     classifier.train()
-    
+
     actual = []
     predicted = []
     for _, elem in test.iterrows():
@@ -54,7 +54,16 @@ def parte_b(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm =
     classifiers = []
     classes = train.clazz.unique()
     idx = 1
+    rest = train
+    length = len(classes)
     for clazz in classes:
+        if algorithm == NAIVE_BAYES_ALGORITHM:
+            amount = 1 / length
+            length -= 1
+            if idx != len(classes):
+                rest, train = split_data(rest, amount)
+            else:
+                train = rest
         classifier = create_classifier(train, algorithm, numeric_attributes, clazz)
         classifier.train()
         classifiers.append(classifier)
@@ -64,7 +73,10 @@ def parte_b(train, test, numeric_attributes=IRIS_NUMERIC_ATTRIBUTES, algorithm =
     predicted = []
     for _, elem in test.iterrows():
         actual.append(elem.clazz)
-        predicted.append(vote_classify(classifiers, elem[0:-1]))
+        if algorithm == NAIVE_BAYES_ALGORITHM:
+            predicted.append(soft_vote_classify(classifiers, elem[0:-1], classes))
+        else:
+            predicted.append(vote_classify(classifiers, elem[0:-1]))
     output_results(title='PARTE B', actual=actual, predicted=predicted)
 
 def parte_c(train, test, numeric_attributes=COV_TYPE_NUMERIC_ATTRIBUTES, algorithm = ID3_ALGORITHM):
@@ -96,6 +108,22 @@ def vote_classify(clasiffiers, element):
     result = list(result)[0] # keep the key which is the class name
     return result
 
+def soft_vote_classify(classifiers, element, classes):
+    results = {}
+    length = len(classifiers)
+    for clazz in classes:
+        results[clazz] = 0
+        for classifier in classifiers:
+            probabilities = classifier.soft_vote_classify(element)
+            results[clazz] += probabilities[clazz]
+        results[clazz] /= length
+
+    return max(results, key=results.get)
+
+def split_data(data, amount):
+    train, test = train_test_split(data, test_size=amount)
+    return train, test
+
 if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option('-p', '--covtype-percent', dest='covtype_percent',
@@ -104,8 +132,8 @@ if __name__ == "__main__":
      help="Algoritmo a utilizar. Puede ser 'id3', '1nn', '3nn', '7nn' o 'nbayes' sin comillas")
     options, args = parser.parse_args()
     if options.covtype_percent:
-        training_size_covtype = float(options.covtype_percent) 
-        print(f'Usando {training_size_covtype * 100} por ciento del cover type dataset')    
+        training_size_covtype = float(options.covtype_percent)
+        print(f'Usando {training_size_covtype * 100} por ciento del cover type dataset')
     else:
         print('Usando 100 por ciento del cover type dataset')
         print('Esto puede demorar. Puede pasar como argumento la proporcion del dataset covtype que desea usar')
@@ -121,15 +149,6 @@ if __name__ == "__main__":
     parte_a(train=train, test=test, algorithm=algorithm)
     parte_b(train=train, test=test, algorithm=algorithm)
     optimize()
-    # print("### COVER_TYPE NUMERIC (opt.csv) ###")
-    # data = pandas.read_csv('./covtype.data.opt.csv')
-    # if training_size_covtype < 1:
-    #     pseudo_train, dataset = train_test_split(data, test_size=training_size_covtype)
-    # else:
-    #     dataset = data
-    # train, test = train_test_split(dataset, test_size=0.2)
-    # train, test = train_test_split(data, test_size=0.2)
-    #parte_c(train, test, algorithm = algorithm)
 
     print("### COVER_TYPE LOG (opt.log.csv) ###")
     data = pandas.read_csv('./covtype.data.opt.log.csv')
@@ -138,5 +157,4 @@ if __name__ == "__main__":
     else:
         dataset = data
     train, test = train_test_split(dataset, test_size=0.2)
-    # train, test = train_test_split(data, test_size=0.2)
     parte_c(train, test, algorithm = algorithm)

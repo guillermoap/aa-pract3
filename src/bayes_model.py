@@ -8,7 +8,7 @@ class Bayes:
         self.mad = mad
         self.mac = mac
 
-    def classify(self, element):
+    def classify(self, element, soft_vote=False):
         probabilities = {}
         for c in self.data.clazz.unique():
             probabilities[c] = self.mc[c]
@@ -19,18 +19,19 @@ class Bayes:
                     if attribute in self.numeric_attributes:
                         x = element[attribute]
                         probabilities[c] *= gaussian(x, self.mac[c][attribute]['mean'], self.mac[c][attribute]['variance'])
-                    else: 
+                    else:
                         x = element[attribute]
                         if (x in self.mad[c][attribute]):
                             p = self.mad[c][attribute][x]
                             if p == 0:
                                 p = 0.000000000001
-                        else: 
+                        else:
                             p = 0.000000000001
                         probabilities[c] *= p
+        if soft_vote:
+            return probabilities
 
         bestProb = -1
-        # print(probabilities)
         for c, prob in probabilities.items():
             if prob > bestProb:
                 bestProb = prob
